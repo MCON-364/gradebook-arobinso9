@@ -56,13 +56,11 @@ public class test {
     @Test
     void removeStudent_whenStudentExistsTheyAreRemoved(){
         gradebook.addStudent("Aviva");
-        var grades = gradebook.findStudentGrades("Aviva");
         assertTrue(gradebook.removeStudent("Aviva"));
-        assertTrue(grades.isEmpty());
+        assertTrue(gradebook.findStudentGrades("Aviva").isEmpty());
     }
     @Test
     void removeGrade_whenStudentDoesNotExistTheyAreNotRemoved(){
-        gradebook.addStudent("Aviva");
         assertFalse(gradebook.removeStudent("Aviva"));
     }
     @Test
@@ -73,7 +71,8 @@ public class test {
     void averageFor_ValidStudentWithNoGradeListReturnsEmpty(){
         gradebook.addStudent("Aviva");
         var grades = gradebook.findStudentGrades("Aviva");
-        assertTrue(grades.isEmpty());
+        assertTrue(grades.isPresent());
+        assertTrue(grades.get().isEmpty());
     }
     @Test
     void averageFor_ValidStudentWithMultipleGradeListsReturnsAverage(){
@@ -96,7 +95,8 @@ public class test {
     void letterGradeFor_ValidStudentWithNoGradeListReturnsEmpty(){
         gradebook.addStudent("Aviva");
         var grades = gradebook.findStudentGrades("Aviva");
-        assertTrue(grades.isEmpty());
+        assertTrue(grades.isPresent());
+        assertTrue(grades.get().isEmpty());
     }
     @Test
     void letterGradeFor_DefaultWorksCorrectly(){
@@ -166,7 +166,7 @@ public class test {
         gradebook.addGrade("Aviva", 100);
         var average = gradebook.classAverage();
         assertTrue(average.isPresent());
-        assertEquals(100, average.get());
+        assertEquals(95.0, average.get());
     }
     @Test
     void classAverage_ignoresStudentsWithNoGrades() {
@@ -195,11 +195,11 @@ public class test {
     @Test
     void undo_RemoveStudent(){
         gradebook.addStudent("Aviva");
-        var gradesBefore = gradebook.findStudentGrades("Aviva");
-        assertTrue(gradesBefore.isPresent());
+        gradebook.removeStudent("Aviva");
         assertTrue(gradebook.undo());
         var gradesAfter = gradebook.findStudentGrades("Aviva");
-        assertFalse(gradesAfter.isPresent());
+        assertTrue(gradesAfter.isPresent());
+        assertTrue(gradesAfter.get().isEmpty());
     }
     @Test
     void recentLog_IfItemsToBeSeenIsGreaterThanTotalItemsReturnFullOgList(){
