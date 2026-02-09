@@ -46,7 +46,7 @@ public class Gradebook {
             // just undo it- and remove it from the grade list.
             // grades.removeLast() gets us the last thing we just added to the stack.
             // Lambdas are only run if u call them...()-> is the lambda part
-            undoStack.push((UNDO) -> grades.removeLast());
+            undoStack.push((gradebook) -> grades.removeLast());
             activityLog.add("Added Grade " + grade+ " for " + name);
             return true;
         }
@@ -66,7 +66,7 @@ public class Gradebook {
             var gradeList= gradesByStudent.get(name);
             gradesByStudent.remove(name);
             activityLog.add("Removed Student: " + name);
-            undoStack.push((UNDO) -> gradesByStudent.put(name, gradeList));
+            undoStack.push((gradebook) -> gradesByStudent.put(name, gradeList));
             return true;
         }
         return false;
@@ -88,7 +88,7 @@ public class Gradebook {
         if(!gradesByStudent.containsKey(name) || gradesByStudent.get(name).isEmpty())
             return Optional.empty();
         var grades = gradesByStudent.get(name);
-        var gradeTtl=0;
+        int gradeTtl=0;
         for (var grade: grades){
             gradeTtl+=grade;
         }
@@ -112,7 +112,7 @@ public class Gradebook {
         if(avgOptional.isEmpty())
             return Optional.empty();
         /*
-        when we have an optional object its a box sp, we cant use it in calculations unless
+        when we have an optional object its a box so, we cant use it in calculations unless
         we extract the value of the box! which is why we did avgOptional.get();
         Also since avgOptional is type Optional<Double> when we do get(), a Double obj
         is returned. Not the primitive double. Therefor we cant directly cast it to an int.
@@ -120,7 +120,7 @@ public class Gradebook {
         which is a method specifically for Objects.
          */
         var avg= avgOptional.get();
-        String grade = switch(avg.intValue()/10){
+        var grade = switch(avg.intValue()/10){
             case 10,9 -> "A";
             case 8 -> "B";
             case 7 -> "C";
@@ -142,8 +142,8 @@ public class Gradebook {
     public Optional<Double> classAverage() {
         if(gradesByStudent.isEmpty())
             return Optional.empty();
-        var gradeTtl=0;
-        var countTtl=0;
+        int gradeTtl=0;
+        int countTtl=0;
         // get each list of grades and add them all up
         for(var gradeList: gradesByStudent.values()){
             for(var grade: gradeList){
@@ -156,11 +156,36 @@ public class Gradebook {
         return Optional.of((double)gradeTtl/countTtl);
     }
 
+    /*
+    undo()
+    Pop the most recent UndoAction from undoStack
+    Execute it (call its undo() method)
+    Add a log entry
+    Return false if stack is empty
+    Return true on success
+     */
     public boolean undo() {
-        throw new UnsupportedOperationException();
+        if(undoStack.isEmpty())
+            return false;
+        var recentAction= undoStack.pop();
+        recentAction.undo(this);
+        activityLog.add("Performed undo");
+        return true;
     }
 
+    /*
+    recentLog(int maxItems)
+    Return the most recent maxItems entries from activityLog
+    Use a LinkedList sublist or iterator
+    Return as List<String>
+     */
     public List<String> recentLog(int maxItems) {
-        throw new UnsupportedOperationException();
+        // we are getting the smaller number og the 2 so that we dont end up with a negative number..
+        int count= Math.min(activityLog.size(), maxItems);
+        //calculate our starting point
+        int start= activityLog.size()- count;
+        // we r returning the sublist from start to end point
+        return activityLog.subList(start, activityLog.size());
+
     }
 }
